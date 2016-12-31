@@ -1,0 +1,2 @@
+IMAGES:/home/citdl/darknet/traintxt/random500_af1300.txt
+BACKUP:/home/citdl/darknet/backup/random500_af1300_check/ 
