@@ -7,6 +7,7 @@
 #include <string.h>
 #include <math.h>
 #include "box.h"
+#include "file.h"
 
 #ifdef OPENCV
 #include "opencv2/highgui/highgui_c.h"
@@ -27,6 +28,8 @@ void draw_box_width(image a, int x1, int y1, int x2, int y2, int w, float r, flo
 void draw_bbox(image a, box bbox, int w, float r, float g, float b);
 void draw_label(image a, int r, int c, image label, const float *rgb);
 void draw_detections(image im, int num, float thresh, box *boxes, float **probs, char **names, image *labels, int classes);
+
+void print_detections(image im, int num, float thresh, box *boxes, float **probs, char **names, image *labels, int classes);
 image image_distance(image a, image b);
 void scale_image(image m, float s);
 image crop_image(image im, int dx, int dy, int w, int h);

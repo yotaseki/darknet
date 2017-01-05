@@ -7,6 +7,7 @@
 #include "parser.h"
 #include "box.h"
 #include "demo.h"
+#include "file.h"
 
 #ifdef OPENCV
 #include "opencv2/highgui/highgui_c.h"
@@ -322,6 +323,7 @@ void validate_yolo_recall(char *cfgfile, char *weightfile)
 void bbox_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
 {
     puts("bbox\n");
+
     DIR* dp = opendir(filename);
     struct dirent* de;
     if(dp ==NULL)
@@ -411,7 +413,7 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
 
 			/***********************************************************/
 			//draw_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSNUM);
-			draw_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSES);
+			print_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSES);
 			//save_image(im, "predictions");
 			//show_image(im, "predictions");
 
@@ -490,6 +492,7 @@ void run_yolo(int argc, char **argv)
     }
 
     float thresh = find_float_arg(argc, argv, "-thresh", .2);
+    printf("*************THRESH: %f*****************",thresh);
     int cam_index = find_int_arg(argc, argv, "-c", 0);
     int frame_skip = find_int_arg(argc, argv, "-s", 0);
     if(argc < 4){
