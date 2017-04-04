@@ -175,10 +175,8 @@ void print_detections(image im, int num, float thresh, box *boxes, float **probs
             if(right > im.w-1) right = im.w-1; 
             if(top < 0) top = 0; 
             if(bot > im.h-1) bot = im.h-1; 
-            sprintf(line,"0 %d %d %d %d \n",left,top,right,bot); 
+            sprintf(line,"%d %d %d %d %d \n",class,left,top,right,bot); 
             ffprintf(line); 
-            draw_box_width(im, left, top, right, bot, width, red, green, blue); 
-            if (labels) draw_label(im, top + width, left, labels[class], rgb); 
         } 
     } 
 }

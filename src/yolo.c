@@ -20,8 +20,6 @@ image voc_labels[CLASSES];
 
 void train_yolo(char *cfgfile, char *weightfile, char *train_images, char *backup_directory)
 {
-//char *train_images = "/home/citdl/darknet/traintxt/random1500_af1300.txt";
-//char *backup_directory = "/home/citdl/darknet/backup/random1500_af1300/";
     printf("train_images: %s\n", train_images);
     printf("backup_dir: %s\n", backup_directory);
     srand(time(0));
