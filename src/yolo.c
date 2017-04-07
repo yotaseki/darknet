@@ -20,8 +20,6 @@ image voc_labels[CLASSES];
 
 void train_yolo(char *cfgfile, char *weightfile, char *train_images, char *backup_directory)
 {
-//char *train_images = "/home/citdl/darknet/traintxt/random1500_af1300.txt";
-//char *backup_directory = "/home/citdl/darknet/backup/random1500_af1300/";
     printf("train_images: %s\n", train_images);
     printf("backup_dir: %s\n", backup_directory);
     srand(time(0));
@@ -344,7 +342,6 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
 		char buff[256];
 		char bf[256];
 		char *input = buff;
-		char fname[256];
 		int j;
 		float nms=.4;
 		box *boxes = calloc(l.side*l.side*l.n, sizeof(box));
@@ -360,8 +357,6 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
 			continue;
 		}
 		sprintf(bf,"%s/%s",filename,de->d_name);
-		sprintf(fname,"%s/%s_predict.txt",filename,de->d_name);
-		ffopen(fname);
 		while(1){
 			if(de->d_name){
 				strncpy(input, bf, 256);
@@ -378,42 +373,57 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
 			time=clock();
 			float *predictions = network_predict(net, X);
 			printf("%s: Predicted in %f seconds.\n", input, sec(clock()-time));
-			convert_detections(predictions, l.classes, l.n, l.sqrt, l.side, 1, 1, thresh, probs, boxes, 0);
-			if (nms) do_nms_sort(boxes, probs, l.side*l.side*l.n, l.classes, nms);
-			/** Chi-chan **/
-			int p,q,s,count;
-			float *pred = l.output;
-			count = -1;
-			for(q = 0; q < l.side*l.side; ++q){
-				for(s = 0; s < l.n; ++s){
-					int index = q*l.n + s;
-					int p_index = l.side*l.side*l.classes + q*l.n + s;
-					float scale = pred[p_index];
-					for(p = 0; p < l.classes; ++p){
-						int class_index = q*l.classes;
-						float prob = scale*pred[class_index+p];
-						//printf("probs[%d][%d] = %f\n",index,p,probs[index][p]);
-						if(probs[index][p]==0){
-							//count to max
-							count = count +1;
-							//printf("count is [%d]\n",count);
-						}
-						else ;//printf("----------------------not zero!!!!!!!\n");
-					}
-					int prediction_box_num=((l.side*l.side)*(l.n) + (l.n)-3);
-					//printf("prediction_box_num=%d\n",((l.side*l.side))*(l.n) + (l.n)-3);
-					if(count==prediction_box_num){
-						//out put txt
-						ffprintf("-1 -1 -1 -1 -1 \n");
-						//printf("output txt\n");
-					}
+                        
+                        int i_thre=0;
+                        for(i_thre=0;i_thre<=100;i_thre++)
+                        {
+                            if(i_thre==0)
+                                thresh=0.0;
+                            else
+                                thresh = (float)i_thre/100;
+                            char fname[256];
+                            sprintf(fname,"%s/thresh/thre%03d/%s_predict.txt",filename,i_thre,de->d_name);
+                            printf("%s/thresh/thre%03d/%s_predict.txt :thresh %f\n",filename,i_thre,de->d_name,thresh);
+                            ffopen(fname);
 
-				}
-			}
+                            convert_detections(predictions, l.classes, l.n, l.sqrt, l.side, 1, 1, thresh, probs, boxes, 0);
+                            if (nms) do_nms_sort(boxes, probs, l.side*l.side*l.n, l.classes, nms);
+                            /** Chi-chan **/
+                            int p,q,s,count;
+                            float *pred = l.output;
+                            count = -1;
+                            for(q = 0; q < l.side*l.side; ++q){
+                                for(s = 0; s < l.n; ++s){
+                                    int index = q*l.n + s;
+                                    int p_index = l.side*l.side*l.classes + q*l.n + s;
+                                    float scale = pred[p_index];
+                                    for(p = 0; p < l.classes; ++p){
+                                        int class_index = q*l.classes;
+                                        float prob = scale*pred[class_index+p];
+                                        //printf("probs[%d][%d] = %f\n",index,p,probs[index][p]);
+                                        if(probs[index][p]==0){
+                                            //count to max
+                                            count = count +1;
+                                            //printf("count is [%d]\n",count);
+                                        }
+                                        else ;//printf("----------------------not zero!!!!!!!\n");
+                                    }
+                                    int prediction_box_num=((l.side*l.side)*(l.n) + (l.n)-3);
+                                    //printf("prediction_box_num=%d\n",((l.side*l.side))*(l.n) + (l.n)-3);
+                                    if(count==prediction_box_num){
+                                        //out put txt
+                                        ffprintf("-1 -1 -1 -1 -1 \n");
+                                        //printf("output txt\n");
+                                    }
 
-			/***********************************************************/
-			//draw_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSNUM);
-			print_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSES);
+                                }
+                            }
+
+                            /***********************************************************/
+                            //draw_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSNUM);
+                            print_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSES);
+                            ffclose(fname);
+                        }
 			//save_image(im, "predictions");
 			//show_image(im, "predictions");
 
@@ -425,7 +435,6 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
 	#endif
 			if (filename) break;
     		}
-		ffclose();
 	}while(de != NULL);
 	closedir(dp);
 }
