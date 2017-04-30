@@ -39,16 +39,17 @@ void train_yolo(char *cfgfile, char *weightfile, char *train_images, char *backu
 {
 //char *train_images = "/home/citdl/darknet/traintxt/random1500_af1300.txt";
 //char *backup_directory = "/home/citdl/darknet/backup/random1500_af1300/";
-	FILE *fp;
-	char log[256],date[256];
+	FILE *log;
+	char logname[256],date[256];
 	get_date(date);
-	sprintf(log,"%s.log",date);
-	fp = fopen(log,"w");
-	fprintf(fp,"[START] %s\n",date);
-	fprintf(fp,"CONFIG: %s\n",cfgfile);
-	fprintf(fp,"WEIGHT: %s\n",weightfile);
-	fprintf(fp,"TRAINTXT: %s\n",train_images);
-	fprintf(fp,"BACKUP: %s\n",backup_directory);
+	sprintf(logname,"%s.txt",date);
+	log = fopen(logname,"w");
+	fprintf(log,"[START] %s\n",date);
+	fprintf(log," CONFIG: %s\n",cfgfile);
+	fprintf(log," WEIGHT: %s\n",weightfile);
+	fprintf(log," TRAINTXT: %s\n",train_images);
+	fprintf(log," BACKUP: %s\n",backup_directory);
+	fflush(log);
 
     printf("train_images: %s\n", train_images);
     printf("backup_dir: %s\n", backup_directory);
@@ -121,8 +122,9 @@ void train_yolo(char *cfgfile, char *weightfile, char *train_images, char *backu
     char buff[256];
     sprintf(buff, "%s/%s_final.weights", backup_directory, base);
     save_weights(net, buff);
-	fprintf(fp,"[FINISH] %s\n",date);
-	fclose(fp);
+	get_date(date);
+	fprintf(log,"[FINISH] %s\n",date);
+	fclose(log);
 }
 
 void convert_detections(float *predictions, int classes, int num, int square, int side, int w, int h, float thresh, float **probs, box *boxes, int only_objectness)
