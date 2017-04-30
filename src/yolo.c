@@ -25,7 +25,7 @@ void get_date(char *date)
 	struct tm *local;
 	timer = time(NULL);
 	local = localtime(&timer);
-	sprintf(date,"%4d%2d%2d_%2d%2d%2d"
+	sprintf(date,"%04d%02d%02d_%02d%02d%02d"
 			,local->tm_year+1900
 			,local->tm_mon+1
 			,local->tm_mday
