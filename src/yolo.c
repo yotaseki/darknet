@@ -42,7 +42,7 @@ void train_yolo(char *cfgfile, char *weightfile, char *train_images, char *backu
 	FILE *log;
 	char logname[256],date[256];
 	get_date(date);
-	sprintf(logname,"%s.txt",date);
+	sprintf(logname,"%s.log",date);
 	log = fopen(logname,"w");
 	fprintf(log,"[START] %s\n",date);
 	fprintf(log," CONFIG: %s\n",cfgfile);
