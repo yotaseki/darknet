@@ -320,8 +320,15 @@ void validate_yolo_recall(char *cfgfile, char *weightfile)
 
 void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, float thresh)
 {
-    puts("bbox\n");
+	puts("bbox\n");
+	int i;
 	mkdir(output);
+	char dir_part[256];
+    for(i=0;i<=100;i++)
+	{
+		sprintf(dir_part,"%s/thre%03d",output,i);
+		mkdir(dir_part);
+	}
     DIR* dp = opendir(filename);
     struct dirent* de;
     if(dp ==NULL)
