@@ -8,6 +8,25 @@ LABELS = {
         "goalpost":1
         }
 
+def getDateTime():
+    d = datetime.datetime.today()
+    date = '{}{}{}{}{}'.format(d.year, '%02d' % d.month, '%02d' % d.day, '%02d' % d.hour, '%02d' % d.minute)
+    return date
+
+def parse_arg():
+    parser = argparse.ArgumentParser(description='test_highest_mAP.py <predicts> <teachers> --output <filename>')
+    parser.add_argument('predicts'
+            ,help='PATH to Predicts dir')
+    parser.add_argument('teachers'
+            ,help='PATH to Teacher dir')
+    parser.add_argument('--label',default=0
+            ,help='label')
+    parser.add_argument('--output',default=""
+            ,help='Name of text output')
+    args = parser.parse_args()
+    args.output = args.output + "log" + getDateTime() + ".txt"
+    return args
+
 class CalcIoU:
     def __init__(self,rect1,rect2):
         self.sq1 = self.Square(rect1)
@@ -58,25 +77,6 @@ class CalcIoU:
         area_total = self.sq1.area + self.sq2.area - area_union
         IoU = float(area_union) / area_total
         return IoU
-
-def getDateTime():
-    d = datetime.datetime.today()
-    date = '{}{}{}{}{}'.format(d.year, '%02d' % d.month, '%02d' % d.day, '%02d' % d.hour, '%02d' % d.minute)
-    return date
-
-def parse_arg():
-    parser = argparse.ArgumentParser(description='test_highest_mAP.py <predicts> <teachers> --output <filename>')
-    parser.add_argument('predicts'
-            ,help='PATH to Predicts dir')
-    parser.add_argument('teachers'
-            ,help='PATH to Teacher dir')
-    parser.add_argument('--label',default=0
-            ,help='label')
-    parser.add_argument('--output',default=""
-            ,help='Name of text output')
-    args = parser.parse_args()
-    args.output = args.output + "log" + getDateTime() + ".txt"
-    return args
 
 def highscore(rank):
     IoU=0

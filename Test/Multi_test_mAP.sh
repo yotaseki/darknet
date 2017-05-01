@@ -1,11 +1,9 @@
 #!/bin/bash
 
 # --- 教師データ ---
-TEACHER="Teacher/capet_test/"
+TEACHER=$1
 # --- フォルダの指定 ---
-PREDICT="
-Predict/TEST_capet_WEIGHT_voc_bg_threshold
-"
+PREDICT=$2
 C=0
 for t in ${TEACHER}
 do
@@ -15,51 +13,50 @@ do
 		d=`basename ${p}`
 		DIR_NAME="log_${d}_threshold"
 		LIST="
-		${p}/thre000  ${p}/thre034  ${p}/thre068
-		${p}/thre001  ${p}/thre035  ${p}/thre069
-		${p}/thre002  ${p}/thre036  ${p}/thre070
-		${p}/thre003  ${p}/thre037  ${p}/thre071
-		${p}/thre004  ${p}/thre038  ${p}/thre072
-		${p}/thre005  ${p}/thre039  ${p}/thre073
-		${p}/thre006  ${p}/thre040  ${p}/thre074
-		${p}/thre007  ${p}/thre041  ${p}/thre075
-		${p}/thre008  ${p}/thre042  ${p}/thre076
-		${p}/thre009  ${p}/thre043  ${p}/thre077
-		${p}/thre010  ${p}/thre044  ${p}/thre078
-		${p}/thre011  ${p}/thre045  ${p}/thre079
-		${p}/thre012  ${p}/thre046  ${p}/thre080
-		${p}/thre013  ${p}/thre047  ${p}/thre081
-		${p}/thre014  ${p}/thre048  ${p}/thre082
-		${p}/thre015  ${p}/thre049  ${p}/thre083
-		${p}/thre016  ${p}/thre050  ${p}/thre084
-		${p}/thre017  ${p}/thre051  ${p}/thre085
-		${p}/thre018  ${p}/thre052  ${p}/thre086
-		${p}/thre019  ${p}/thre053  ${p}/thre087
-		${p}/thre020  ${p}/thre054  ${p}/thre088
-		${p}/thre021  ${p}/thre055  ${p}/thre089
-		${p}/thre022  ${p}/thre056  ${p}/thre090
-		${p}/thre023  ${p}/thre057  ${p}/thre091
-		${p}/thre024  ${p}/thre058  ${p}/thre092
-		${p}/thre025  ${p}/thre059  ${p}/thre093
-		${p}/thre026  ${p}/thre060  ${p}/thre094
-		${p}/thre027  ${p}/thre061  ${p}/thre095
-		${p}/thre028  ${p}/thre062  ${p}/thre096
-		${p}/thre029  ${p}/thre063  ${p}/thre097
-		${p}/thre030  ${p}/thre064  ${p}/thre098
-		${p}/thre031  ${p}/thre065  ${p}/thre099
-		${p}/thre032  ${p}/thre066  ${p}/thre100
-		${p}/thre033  ${p}/thre067
+		thre000  thre034  thre068
+		thre001  thre035  thre069
+		thre002  thre036  thre070
+		thre003  thre037  thre071
+		thre004  thre038  thre072
+		thre005  thre039  thre073
+		thre006  thre040  thre074
+		thre007  thre041  thre075
+		thre008  thre042  thre076
+		thre009  thre043  thre077
+		thre010  thre044  thre078
+		thre011  thre045  thre079
+		thre012  thre046  thre080
+		thre013  thre047  thre081
+		thre014  thre048  thre082
+		thre015  thre049  thre083
+		thre016  thre050  thre084
+		thre017  thre051  thre085
+		thre018  thre052  thre086
+		thre019  thre053  thre087
+		thre020  thre054  thre088
+		thre021  thre055  thre089
+		thre022  thre056  thre090
+		thre023  thre057  thre091
+		thre024  thre058  thre092
+		thre025  thre059  thre093
+		thre026  thre060  thre094
+		thre027  thre061  thre095
+		thre028  thre062  thre096
+		thre029  thre063  thre097
+		thre030  thre064  thre098
+		thre031  thre065  thre099
+		thre032  thre066  thre100
+		thre033  thre067
 		"
-		for PREDICTS in ${LIST} ;do
+		for i in ${LIST} ;do
+				PREDICTS="${p}/${i}"
 				SUB_DIR=`basename ${PREDICTS}`
 				echo " ---  "
 				echo "PREDICT[${PREDICTS}] TEACHER[${TEACHER}]"
-				#mkdir -p ${DIR_NAME}/${SUB_DIR}
-				#mkdir -p "${DIR_NAME}_highscore/${SUB_DIR}"
-				#python test_highscore.py ${PREDICTS} ${TEACHER} --output "${DIR_NAME}/${SUB_DIR}/${SUB_DIR}"
-				python test_mAP.py ${PREDICTS} ${TEACHER} ${DIR_NAME}/${SUB_DIR}/${SUB_DIR}
-				#python test_highscore.py ${PREDICTS} ${TEACHER} --output "${DIR_NAME}_highscore/${SUB_DIR}/${SUB_DIR}"
+				mkdir ${DIR_NAME}
+				OUTPUT="${DIR_NAME}/${i}"
+				python test_highscore.py ${PREDICTS} ${TEACHER} --output ${OUTPUT}
 		done
-		mv sheet.csv sheet${C}.csv
+		mv sheet.csv ${DIR_NAME}/sheet${C}.csv
 	done
 done
