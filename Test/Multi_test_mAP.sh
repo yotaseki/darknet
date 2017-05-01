@@ -11,7 +11,7 @@ do
 	do
 		export C=`expr ${C} + 1`
 		d=`basename ${p}`
-		DIR_NAME="log_${d}_threshold"
+		DIR_NAME="Log/log_${d}_threshold"
 		LIST="
 		thre000  thre034  thre068
 		thre001  thre035  thre069
