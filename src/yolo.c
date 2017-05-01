@@ -318,10 +318,10 @@ void validate_yolo_recall(char *cfgfile, char *weightfile)
     }
 }
 
-void bbox_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
+void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, float thresh)
 {
     puts("bbox\n");
-
+	mkdir(output);
     DIR* dp = opendir(filename);
     struct dirent* de;
     if(dp ==NULL)
@@ -382,8 +382,8 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
                             else
                                 thresh = (float)i_thre/100;
                             char fname[256];
-                            sprintf(fname,"%s/thresh/thre%03d/%s_predict.txt",filename,i_thre,de->d_name);
-                            printf("%s/thresh/thre%03d/%s_predict.txt :thresh %f\n",filename,i_thre,de->d_name,thresh);
+                            sprintf(fname,"%s/thre%03d/%s_predict.txt",output,i_thre,de->d_name);
+                            printf("%s/thre%03d/%s_predict.txt :thresh %f\n",output,i_thre,de->d_name,thresh);
                             ffopen(fname);
 
                             convert_detections(predictions, l.classes, l.n, l.sqrt, l.side, 1, 1, thresh, probs, boxes, 0);
@@ -501,7 +501,6 @@ void run_yolo(int argc, char **argv)
     }
 
     float thresh = find_float_arg(argc, argv, "-thresh", .2);
-    printf("*************THRESH: %f*****************",thresh);
     int cam_index = find_int_arg(argc, argv, "-c", 0);
     int frame_skip = find_int_arg(argc, argv, "-s", 0);
     if(argc < 4){
@@ -514,7 +513,7 @@ void run_yolo(int argc, char **argv)
     char *filename = (argc > 5) ? argv[5]: 0;
     char *outdir = (argc > 6) ? argv[6]: 0;
     if(0==strcmp(argv[2], "test")) test_yolo(cfg, weights, filename, thresh);
-    else if(0==strcmp(argv[2], "bbox")) bbox_yolo(cfg, weights, filename, thresh);
+    else if(0==strcmp(argv[2], "bbox")) bbox_yolo(cfg, weights, filename, outdir, thresh);
     else if(0==strcmp(argv[2], "train")) train_yolo(cfg, weights, filename, outdir);
     else if(0==strcmp(argv[2], "valid")) validate_yolo(cfg, weights);
     else if(0==strcmp(argv[2], "recall")) validate_yolo_recall(cfg, weights);
