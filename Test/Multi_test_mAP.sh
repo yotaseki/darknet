@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # --- 教師データ ---
-TEACHER=$1
+TESTDATA=$1
 # --- フォルダの指定 ---
 PREDICT=$2
 C=0
-for t in ${TEACHER}
+for t in ${TESTDATA}
 do
 	for p in ${PREDICT}
 	do
@@ -52,10 +52,10 @@ do
 				PREDICTS="${p}/${i}"
 				SUB_DIR=`basename ${PREDICTS}`
 				echo " ---  "
-				echo "PREDICT[${PREDICTS}] TEACHER[${TEACHER}]"
+				echo "PREDICT[${PREDICTS}] TESTDATA[${TESTDATA}]"
 				mkdir -p ${DIR_NAME}
 				OUTPUT="${DIR_NAME}/${i}"
-				python test_highscore.py ${PREDICTS} ${TEACHER} --output ${OUTPUT}
+				python test_highscore.py ${PREDICTS} ${TESTDATA} --output ${OUTPUT}
 		done
 		mv sheet.csv ${DIR_NAME}/sheet${C}.csv
 	done
