@@ -1,5 +1,6 @@
 #include <dirent.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include "network.h"
 #include "detection_layer.h"
 #include "cost_layer.h"
@@ -322,12 +323,12 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, flo
 {
 	puts("bbox\n");
 	int i;
-	mkdir(output);
+	mkdir(output,S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IWOTH|S_IXOTH);
 	char dir_part[256];
     for(i=0;i<=100;i++)
 	{
 		sprintf(dir_part,"%s/thre%03d",output,i);
-		mkdir(dir_part);
+		mkdir(dir_part,S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IWOTH|S_IXOTH);
 	}
     DIR* dp = opendir(filename);
     struct dirent* de;
