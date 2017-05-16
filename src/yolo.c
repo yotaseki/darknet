@@ -343,8 +343,7 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, flo
     }
     detection_layer l = net.layers[net.n-1];
     set_batch_network(&net, 1);
-    do{
-		de = readdir(dp);
+    while((de = readdir(dp))!=NULL){
 		srand(2222222);
 		clock_t time;
 		char buff[256];
@@ -390,8 +389,11 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, flo
                             else
                                 thresh = (float)i_thre/100;
                             char fname[256];
-                            sprintf(fname,"%s/thre%03d/%s_predict.txt",output,i_thre,de->d_name);
-                            printf("%s/thre%03d/%s_predict.txt :thresh %f\n",output,i_thre,de->d_name,thresh);
+                            char outputtxt[256];
+                            strncpy(outputtxt,de->d_name,strlen(de->d_name)-4);
+                            outputtxt[strlen(de->d_name)-4] = '\0';
+                            sprintf(fname,"%s/thre%03d/%s_predict.txt",output,i_thre,outputtxt);
+                            printf("%s/thre%03d/%s_predict.txt :thresh %f\n",output,i_thre,outputtxt,thresh);
                             ffopen(fname);
 
                             convert_detections(predictions, l.classes, l.n, l.sqrt, l.side, 1, 1, thresh, probs, boxes, 0);
@@ -443,7 +445,7 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, flo
 	#endif
 			if (filename) break;
     		}
-	}while(de != NULL);
+	}
 	closedir(dp);
 }
 
