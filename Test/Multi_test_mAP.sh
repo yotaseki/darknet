@@ -53,7 +53,7 @@ do
 				SUB_DIR=`basename ${PREDICTS}`
 				echo " ---  "
 				echo "PREDICT[${PREDICTS}] TEACHER[${TEACHER}]"
-				mkdir ${DIR_NAME}
+				mkdir -p ${DIR_NAME}
 				OUTPUT="${DIR_NAME}/${i}"
 				python test_highscore.py ${PREDICTS} ${TEACHER} --output ${OUTPUT}
 		done

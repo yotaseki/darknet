@@ -155,7 +155,7 @@ def main():
     result.append("FalsePositive " + str(cnt_FP))
     result.append("FalseNegative " + str(cnt_FN))
     sheet = open("sheet.csv","a")
-    sheet.write(str(arg.output)+" "+str(mAP)+" "+str(cnt_TP)+" "+str(cnt_TN)+" "+str(cnt_Lo)+" "+str(cnt_FP)+" "+str(cnt_FN)+"\n")
+    sheet.write(str(arg.output)+","+str(mAP)+","+str(cnt_TP)+","+str(cnt_TN)+","+str(cnt_Lo)+","+str(cnt_FP)+","+str(cnt_FN)+"\n")
     print " --- "
     for line in result:
         print line
