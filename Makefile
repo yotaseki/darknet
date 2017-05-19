@@ -6,7 +6,7 @@ DEBUG=0
 ARCH= --gpu-architecture=compute_52 --gpu-code=compute_52
 
 VPATH=./src/
-EXEC=darknet_thre100
+EXEC=darknet
 OBJDIR=./obj/
 
 CC=gcc
