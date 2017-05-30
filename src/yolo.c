@@ -422,7 +422,7 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, flo
                                     //printf("prediction_box_num=%d\n",((l.side*l.side))*(l.n) + (l.n)-3);
                                     if(count==prediction_box_num){
                                         //out put txt
-                                        ffprintf("-1 -1 -1 -1 -1 \n");
+                                        ffprintf("-1 -1 -1 -1 -1 -1 \n");
                                         //printf("output txt\n");
                                     }
 
