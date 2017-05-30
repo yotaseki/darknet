@@ -175,7 +175,7 @@ void print_detections(image im, int num, float thresh, box *boxes, float **probs
             if(right > im.w-1) right = im.w-1; 
             if(top < 0) top = 0; 
             if(bot > im.h-1) bot = im.h-1; 
-            sprintf(line,"%d %d %d %d %d \n",class,left,top,right,bot); 
+            sprintf(line,"0 %d %d %d %d %.0f \n",left,top,right,bot, prob*100); 
             ffprintf(line); 
         } 
     } 

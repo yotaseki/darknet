@@ -1,5 +1,6 @@
 #include <dirent.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include "network.h"
 #include "detection_layer.h"
 #include "cost_layer.h"
@@ -318,10 +319,17 @@ void validate_yolo_recall(char *cfgfile, char *weightfile)
     }
 }
 
-void bbox_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
+void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, float thresh)
 {
-    puts("bbox\n");
-
+	puts("bbox\n");
+	int i;
+	mkdir(output,S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IWOTH|S_IXOTH);
+	char dir_part[256];
+    for(i=0;i<=100;i++)
+	{
+		sprintf(dir_part,"%s/thre%03d",output,i);
+		mkdir(dir_part,S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IWOTH|S_IXOTH);
+	}
     DIR* dp = opendir(filename);
     struct dirent* de;
     if(dp ==NULL)
@@ -335,14 +343,12 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
     }
     detection_layer l = net.layers[net.n-1];
     set_batch_network(&net, 1);
-    do{
-		de = readdir(dp);
+    while((de = readdir(dp))!=NULL){
 		srand(2222222);
 		clock_t time;
 		char buff[256];
 		char bf[256];
 		char *input = buff;
-		char fname[256];
 		int j;
 		float nms=.4;
 		box *boxes = calloc(l.side*l.side*l.n, sizeof(box));
@@ -358,8 +364,6 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
 			continue;
 		}
 		sprintf(bf,"%s/%s",filename,de->d_name);
-		sprintf(fname,"%s/%s_predict.txt",filename,de->d_name);
-		ffopen(fname);
 		while(1){
 			if(de->d_name){
 				strncpy(input, bf, 256);
@@ -376,42 +380,60 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
 			time=clock();
 			float *predictions = network_predict(net, X);
 			printf("%s: Predicted in %f seconds.\n", input, sec(clock()-time));
-			convert_detections(predictions, l.classes, l.n, l.sqrt, l.side, 1, 1, thresh, probs, boxes, 0);
-			if (nms) do_nms_sort(boxes, probs, l.side*l.side*l.n, l.classes, nms);
-			/** Chi-chan **/
-			int p,q,s,count;
-			float *pred = l.output;
-			count = -1;
-			for(q = 0; q < l.side*l.side; ++q){
-				for(s = 0; s < l.n; ++s){
-					int index = q*l.n + s;
-					int p_index = l.side*l.side*l.classes + q*l.n + s;
-					float scale = pred[p_index];
-					for(p = 0; p < l.classes; ++p){
-						int class_index = q*l.classes;
-						float prob = scale*pred[class_index+p];
-						//printf("probs[%d][%d] = %f\n",index,p,probs[index][p]);
-						if(probs[index][p]==0){
-							//count to max
-							count = count +1;
-							//printf("count is [%d]\n",count);
-						}
-						else ;//printf("----------------------not zero!!!!!!!\n");
-					}
-					int prediction_box_num=((l.side*l.side)*(l.n) + (l.n)-3);
-					//printf("prediction_box_num=%d\n",((l.side*l.side))*(l.n) + (l.n)-3);
-					if(count==prediction_box_num){
-						//out put txt
-						ffprintf("-1 -1 -1 -1 -1 \n");
-						//printf("output txt\n");
-					}
+                        
+                        int i_thre=0;
+                        for(i_thre=0;i_thre<=100;i_thre++)
+                        {
+                            if(i_thre==0)
+                                thresh=0.0;
+                            else
+                                thresh = (float)i_thre/100;
+                            char fname[256];
+                            char outputtxt[256];
+                            strncpy(outputtxt,de->d_name,strlen(de->d_name)-4);
+                            outputtxt[strlen(de->d_name)-4] = '\0';
+                            sprintf(fname,"%s/thre%03d/%s_predict.txt",output,i_thre,outputtxt);
+                            printf("%s/thre%03d/%s_predict.txt :thresh %f\n",output,i_thre,outputtxt,thresh);
+                            ffopen(fname);
 
-				}
-			}
+                            convert_detections(predictions, l.classes, l.n, l.sqrt, l.side, 1, 1, thresh, probs, boxes, 0);
+                            if (nms) do_nms_sort(boxes, probs, l.side*l.side*l.n, l.classes, nms);
+                            /** Chi-chan **/
+                            int p,q,s,count;
+                            float *pred = l.output;
+                            count = -1;
+                            for(q = 0; q < l.side*l.side; ++q){
+                                for(s = 0; s < l.n; ++s){
+                                    int index = q*l.n + s;
+                                    int p_index = l.side*l.side*l.classes + q*l.n + s;
+                                    float scale = pred[p_index];
+                                    for(p = 0; p < l.classes; ++p){
+                                        int class_index = q*l.classes;
+                                        float prob = scale*pred[class_index+p];
+                                        //printf("probs[%d][%d] = %f\n",index,p,probs[index][p]);
+                                        if(probs[index][p]==0){
+                                            //count to max
+                                            count = count +1;
+                                            //printf("count is [%d]\n",count);
+                                        }
+                                        else ;//printf("----------------------not zero!!!!!!!\n");
+                                    }
+                                    int prediction_box_num=((l.side*l.side)*(l.n) + (l.n)-3);
+                                    //printf("prediction_box_num=%d\n",((l.side*l.side))*(l.n) + (l.n)-3);
+                                    if(count==prediction_box_num){
+                                        //out put txt
+                                        ffprintf("-1 -1 -1 -1 -1 -1 \n");
+                                        //printf("output txt\n");
+                                    }
 
-			/***********************************************************/
-			//draw_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSNUM);
-			print_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSES);
+                                }
+                            }
+
+                            /***********************************************************/
+                            //draw_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSNUM);
+                            print_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSES);
+                            ffclose(fname);
+                        }
 			//save_image(im, "predictions");
 			//show_image(im, "predictions");
 
@@ -423,8 +445,7 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
 	#endif
 			if (filename) break;
     		}
-		ffclose();
-	}while(de != NULL);
+	}
 	closedir(dp);
 }
 
@@ -490,7 +511,6 @@ void run_yolo(int argc, char **argv)
     }
 
     float thresh = find_float_arg(argc, argv, "-thresh", .2);
-    printf("*************THRESH: %f*****************",thresh);
     int cam_index = find_int_arg(argc, argv, "-c", 0);
     int frame_skip = find_int_arg(argc, argv, "-s", 0);
     if(argc < 4){
@@ -503,7 +523,7 @@ void run_yolo(int argc, char **argv)
     char *filename = (argc > 5) ? argv[5]: 0;
     char *outdir = (argc > 6) ? argv[6]: 0;
     if(0==strcmp(argv[2], "test")) test_yolo(cfg, weights, filename, thresh);
-    else if(0==strcmp(argv[2], "bbox")) bbox_yolo(cfg, weights, filename, thresh);
+    else if(0==strcmp(argv[2], "bbox")) bbox_yolo(cfg, weights, filename, outdir, thresh);
     else if(0==strcmp(argv[2], "train")) train_yolo(cfg, weights, filename, outdir);
     else if(0==strcmp(argv[2], "valid")) validate_yolo(cfg, weights);
     else if(0==strcmp(argv[2], "recall")) validate_yolo_recall(cfg, weights);
