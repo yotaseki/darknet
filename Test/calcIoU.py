@@ -27,7 +27,7 @@ def parse_arg():
     args.output = args.output + "log_" + getDateTime() + ".txt"
     return args
 
-class CalcIoU:
+class CalcIoU: # 1bbox
     def __init__(self,predict_rect,gt_rect):
         self.sq1 = self.Square(predict_rect)
         self.sq2 = self.Square(gt_rect)
@@ -62,28 +62,33 @@ class CalcIoU:
         ovl = self.Square([X1,Y1,X2,Y2])
         return ovl
 
-    def calcIoU(self, prd, tch):
-        if prd.area == 0 and tch.area == 0:
+    def calcIoU(self, prd, gt):
+        if prd.area == 0 and gt.area == 0:
             return "TN" #TrueNegative
-        if pdr.area == 0 and tch.area > 0 :
+        if prd.area == 0 and gt.area > 0 :
             return "FN" #FalseNegative
-        if pdr.area > 0  and tch.area == 0:
+        if prd.area > 0  and gt.area == 0:
             return "FP" #FalsePositive
+        ovl = self.overlap(prd,gt)
         area_overlap = ovl.area
-        area_total = prd.area + tch.area - area_overlap
-        IoU = float(area_union) / area_total
+        area_total = prd.area + gt.area - area_overlap
+        IoU = float(area_overlap) / area_total
         self.IoU = IoU
         if self.IoU < 0.5:
             return "LE"
         else:
             return "TP"
 
-class YOLO_IoU:
+class YOLO_IoU: # 1file
     def __init__(self,labelnum,MAX_THRE=0):
         self.groundtruth = []
         self.predict = []
         self.label = labelnum
         self.MAX_THRE = MAX_THRE
+        self.IoU_based_on_gt = []
+        self.IoU_based_on_pr = []
+        self.Type_based_on_gt = ""
+        self.Type_based_on_pr = ""
 
     def add_groundtruth(self,line):
         t = line[:-1].split(' ')
@@ -105,24 +110,37 @@ class YOLO_IoU:
                     self.predict.pop()
 
     def calcIoU_based_on_gt(self):
-        score_g = []
+        dummy = [[-1],[-1,-1,-1,-1]]
+        if len(self.groundtruth) == 0:
+            self.groundtruth.append(dummy)
+        if len(self.predict) == 0:
+            self.predict.append(dummy)
         for g in self.groundtruth:
+            score_g = []
             for p in self.predict:
                 c = CalcIoU(p[1],g[1])
                 res = [c.IoU , c.Type]
-                score_t.append(res)
+                score_g.append(res)
             score_g.sort()
             score_g.reverse()
+            self.IoU_based_on_gt.append(score_g[0])
 
-    def calcIoU_based_on_precision(self):
-        score_p = []
+
+    def calcIoU_based_on_predict(self):
+        dummy = [[-1],[-1,-1,-1,-1]]
+        if len(self.groundtruth) == 0:
+            self.groundtruth.append(dummy)
+        if len(self.predict) == 0:
+            self.predict.append(dummy)
         for p in self.predict:
+            score_p = []
             for g in self.groundtruth:
                 c = CalcIoU(p[1],g[1])
                 res = [c.IoU , c.Type]
                 score_p.append(res)
             score_p.sort()
             score_p.reverse()
+            self.IoU_based_on_pr.append(score_p[0])
 
 def highscore(rank):
     IoU=0
@@ -142,52 +160,62 @@ def average(rank):
 
 def make_predict_list(files):
     predict = []
-        for fn in files:
-            fn = arg.predict + "/" + fn
-                predict.append(fn)
-        return predict
+    for fn in files:
+        fn = arg.predict + "/" + fn
+        predict.append(fn)
+    return predict
 
 def make_gt_list(files):
     gt = []
-        for fn in files:
-            fn = fn.rstrip('_predict.txt')
-                fn = arg.groundtruth +"/" + fn + ".txt"
-                gt.append(fn)
-        return gt
+    for fn in files:
+        fn = fn.rstrip('_predict.txt')
+        fn = arg.groundtruth +"/" + fn + ".txt"
+        gt.append(fn)
+    return gt
 
 def main():
     files = os.listdir(arg.predict)
-        predict = make_predict_list(files)
-        gt = make_gt_list(files)
-        predict.sort()
-        gt.sort()
-        for i in range(len(predict)):
-            y1 = YOLO_IoU(LABELS["ball"])
-            y2 = YOLO_IoU(LABELS["goalpost"])
-            if os.path.isfile(predict[i]) == False:
-                continue
-            if os.path.isfile(gt[i]) == False:
-                continue
-            for p_line in open(predict[i]).readlines():
-                y1.add_predict(p_line)
-                y2.add_predict(p_line)
-            for t_line in open(gt[i]).readlines():
-                y1.add_predict(t_line)
-                y2.add_predict(t_line)
-            print y1.groundtruth
-            """
-            log = open(arg.output)
-            if dst == "FN":
-                log.write(predict[i] + " FN ")
-            if dst == "FP":
-                log.write(predict[i] + " FP " + str(IoU))
-            if dst == "TN":
-                log.write(predict[i] + " TN ")
-            if dst == "TP":
-                log.write(predict[i] + " TP " + str(IoU))
-            if dst == "LE":
-                log.write(predict[i] + " LE " + str(IoU))
-            """
+    predict = make_predict_list(files)
+    gt = make_gt_list(files)
+    predict.sort()
+    gt.sort()
+    for i in range(len(predict)):
+        print "loading :" + predict[i]
+        if os.path.isfile(predict[i]) == False:
+            print "continue"
+            continue
+        if os.path.isfile(gt[i]) == False:
+            print "continue"
+            continue
+        y1 = YOLO_IoU(LABELS["ball"],1)
+        y2 = YOLO_IoU(LABELS["goalpost"])
+        for p_line in open(predict[i]).readlines():
+            y1.add_predict(p_line)
+            y2.add_predict(p_line)
+        for t_line in open(gt[i]).readlines():
+            y1.add_groundtruth(t_line)
+            y2.add_groundtruth(t_line)
+        y1.calcIoU_based_on_predict()
+        y1.calcIoU_based_on_gt()
+        y2.calcIoU_based_on_predict()
+        y2.calcIoU_based_on_gt()
+        print y2.groundtruth
+        print y2.predict
+        print y2.IoU_based_on_gt
+        print y2.IoU_based_on_pr
+        """
+        log = open(arg.output)
+        if dst == "FN":
+            log.write(predict[i] + " FN ")
+        if dst == "FP":
+            log.write(predict[i] + " FP " + str(IoU))
+        if dst == "TN":
+            log.write(predict[i] + " TN ")
+        if dst == "TP":
+            log.write(predict[i] + " TP " + str(IoU))
+        if dst == "LE":
+            log.write(predict[i] + " LE " + str(IoU))
+        """
 
 if __name__=='__main__':
     arg = parse_arg()
