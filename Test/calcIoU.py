@@ -89,6 +89,8 @@ class YOLO_IoU: # 1file
         self.IoU_based_on_pr = []
         self.Type_based_on_gt = ""
         self.Type_based_on_pr = ""
+        self.IoU_gt = .0
+        self.IoU_pr = .0
 
     def add_groundtruth(self,line):
         t = line[:-1].split(' ')
@@ -106,41 +108,58 @@ class YOLO_IoU: # 1file
             self.predict.sort()
             self.predict.reverse()
             if self.MAX_THRE:
-                while len(self.predict) > 1:
+                while len(self.predict) > self.MAX_THRE:
                     self.predict.pop()
 
     def calcIoU_based_on_gt(self):
-        dummy = [[-1],[-1,-1,-1,-1]]
-        if len(self.groundtruth) == 0:
-            self.groundtruth.append(dummy)
-        if len(self.predict) == 0:
-            self.predict.append(dummy)
+        if len(self.groundtruth) == 0 and len(self.predict) == 0:return "TN"
+        if len(self.groundtruth) == 0 and len(self.predict)  > 0:return "FP"
+        if len(self.groundtruth)  > 0 and len(self.predict) == 0:return "FN"
         for g in self.groundtruth:
             score_g = []
             for p in self.predict:
                 c = CalcIoU(p[1],g[1])
-                res = [c.IoU , c.Type]
-                score_g.append(res)
+                score_g.append(c.IoU)
             score_g.sort()
             score_g.reverse()
             self.IoU_based_on_gt.append(score_g[0])
-
+        self.IoU_gt = average(self.IoU_based_on_gt)
+        if self.IoU_gt < 0.5:return "LE"
+        else:return "TP"
 
     def calcIoU_based_on_predict(self):
-        dummy = [[-1],[-1,-1,-1,-1]]
-        if len(self.groundtruth) == 0:
-            self.groundtruth.append(dummy)
-        if len(self.predict) == 0:
-            self.predict.append(dummy)
+        if (len(self.groundtruth) == 0) and (len(self.predict) == 0):return "TN"
+        if (len(self.groundtruth) == 0) and (len(self.predict)  > 0):return "FP"
+        if (len(self.groundtruth)  > 0) and (len(self.predict) == 0):return "FN"
         for p in self.predict:
             score_p = []
             for g in self.groundtruth:
                 c = CalcIoU(p[1],g[1])
-                res = [c.IoU , c.Type]
-                score_p.append(res)
+                score_p.append(c.IoU)
             score_p.sort()
             score_p.reverse()
             self.IoU_based_on_pr.append(score_p[0])
+        self.IoU_pr = average(self.IoU_based_on_pr)
+        if self.IoU_pr < 0.1:return "FP"
+        if self.IoU_pr < 0.5:return "LE"
+        else:return "TP"
+
+    def calcIoU(self, prd, gt):
+        if prd.area == 0 and gt.area == 0:
+            return "TN" #TrueNegative
+        if prd.area == 0 and gt.area >  0:
+            return "FN" #FalseNegative
+        if prd.area > 0  and gt.area == 0:
+            return "FP" #FalsePositive
+        ovl = self.overlap(prd,gt)
+        area_overlap = ovl.area
+        area_total = prd.area + gt.area - area_overlap
+        IoU = float(area_overlap) / area_total
+        self.IoU = IoU
+        if self.IoU < 0.5:
+            return "LE"
+        else:
+            return "TP"
 
 def highscore(rank):
     IoU=0
@@ -179,50 +198,59 @@ def main():
     gt = make_gt_list(files)
     predict.sort()
     gt.sort()
-    for i in range(len(predict)):
-        print "loading :" + predict[i]
-        if os.path.isfile(predict[i]) == False:
-            print "continue"
-            continue
-        if os.path.isfile(gt[i]) == False:
-            print "continue"
-            continue
-        y1 = YOLO_IoU(LABELS["ball"],1)
-        y2 = YOLO_IoU(LABELS["goalpost"])
-        for p_line in open(predict[i]).readlines():
-            y1.add_predict(p_line)
-            y2.add_predict(p_line)
-        for t_line in open(gt[i]).readlines():
-            y1.add_groundtruth(t_line)
-            y2.add_groundtruth(t_line)
-        y1.calcIoU_based_on_predict()
-        y1.calcIoU_based_on_gt()
-        y2.calcIoU_based_on_predict()
-        y2.calcIoU_based_on_gt()
-        print y2.groundtruth
-        print y2.predict
-        print y2.IoU_based_on_gt
-        print y2.IoU_based_on_pr
-        """
-        log = open(arg.output)
-        if dst == "FN":
-            log.write(predict[i] + " FN ")
-        if dst == "FP":
-            log.write(predict[i] + " FP " + str(IoU))
-        if dst == "TN":
-            log.write(predict[i] + " TN ")
-        if dst == "TP":
-            log.write(predict[i] + " TP " + str(IoU))
-        if dst == "LE":
-            log.write(predict[i] + " LE " + str(IoU))
-        """
+    yolo = [    # ["objectname",topN (default=0;ALL_BOX)]
+        ["ball",1],
+        ["goalpost",0]
+    ]
+    for cls in range(len(yolo)):
+        buf1  = []
+        buf2  = []
+        mAP   = [.0,.0]
+        cntTP = [0,0] # [groundtruth ,predict]
+        cntTN = [0,0]
+        cntFP = [0,0]
+        cntFN = [0,0]
+        cntLE = [0,0]
+        for i in range(len(predict)):
+            print "loading :" + predict[i]
+            if os.path.isfile(predict[i]) == False:
+                print "continue"
+                continue
+            if os.path.isfile(gt[i]) == False:
+                print "continue"
+                continue
+            y = YOLO_IoU(LABELS[yolo[cls][0]],yolo[cls][1])
+            for p_line in open(predict[i]).readlines():
+                y.add_predict(p_line)
+            for g_line in open(gt[i]).readlines():
+                y.add_groundtruth(g_line)
+            result_pr = y.calcIoU_based_on_predict()
+            result_gt = y.calcIoU_based_on_gt()
+            m = [y.IoU_gt,y.IoU_pr]
+            buf1.append(y.IoU_gt)
+            buf2.append(y.IoU_pr)
+            mAP[0] = average(buf1)
+            if result_pr=="TP":cntTP[0]=cntTP[0]+1
+            if result_pr=="TN":cntTN[0]=cntTN[0]+1
+            if result_pr=="LE":cntLE[0]=cntLE[0]+1
+            if result_pr=="FP":cntFP[0]=cntFP[0]+1
+            if result_pr=="FN":cntFN[0]=cntFN[0]+1
+            mAP[1] = average(buf2)
+            if result_pr=="TP":cntTP[1]=cntTP[1]+1
+            if result_pr=="TN":cntTN[1]=cntTN[1]+1
+            if result_pr=="LE":cntLE[1]=cntLE[1]+1
+            if result_pr=="FP":cntFP[1]=cntFP[1]+1
+            if result_pr=="FN":cntFN[1]=cntFN[1]+1
+            #print result_pr + ": " + str(y.IoU_pr)
+            #print result_gt + ": " + str(y.IoU_gt)
+        sheet1 = open("sheet_gt_"+yolo[cls][0]+".csv","a")
+        sheet2 = open("sheet_pr_"+yolo[cls][0]+".csv","a")
+        print "[gt]mAP:{},TP:{},TN:{},LE{},FP{},FN{}".format(mAP[0],cntTP[0],cntTN[0],cntLE[0],cntFP[0],cntFN[0])
+        print "[pr]mAP:{},TP:{},TN:{},LE{},FP{},FN{}".format(mAP[1],cntTP[1],cntTN[1],cntLE[1],cntFP[1],cntFN[1])
+        sheet1.write("{},{},{},{},{},{},{}\n".format(arg.predict,mAP[0],cntTP[0],cntTN[0],cntLE[0],cntFP[0],cntFN[0]))
+        sheet2.write("{},{},{},{},{},{},{}\n".format(arg.predict,mAP[1],cntTP[1],cntTN[1],cntLE[1],cntFP[1],cntFN[1]))
 
 if __name__=='__main__':
     arg = parse_arg()
-    cnt_TP = 0
-    cnt_TN = 0
-    cnt_FP = 0
-    cnt_FN = 0
-    cnt_Lo = 0
     mAP= 0
     main()

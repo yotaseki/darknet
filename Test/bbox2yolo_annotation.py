@@ -39,8 +39,6 @@ def yolo2bbox(rect):
 
 
 def main():
-    #print(arg.bbox)
-    #print(arg.output)
     src = open(arg.text,'r').readlines()
     dst = open(arg.output,'w')
     for l in src:
@@ -48,15 +46,12 @@ def main():
         rect  = [0,0,0,0,0]
         for i in range(5):
             rect[i] = float(data[i])
-            #print rect[i]
-        #print rect
         if int(arg.option) == 0:
-            print "[Run {}] int -> float [OUT {}]".format(arg.text,arg.output),
+            print "[Run {}] int -> float [OUT {}]".format(arg.text,arg.output)
             out = bbox2yolo(rect)
         if int(arg.option) == 1:
-            print "[Run {}] float -> int [OUT {}]".format(arg.text,arg.output),
+            print "[Run {}] float -> int [OUT {}]".format(arg.text,arg.output)
             out = yolo2bbox(rect)
-        #print out
         for i in range(5):
             dst.write(str(out[i]) + " ")
         dst.write("\n")

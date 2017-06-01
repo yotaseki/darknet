@@ -55,8 +55,8 @@ do
 				echo "PREDICT[${PREDICTS}] TESTDATA[${TESTDATA}]"
 				mkdir -p ${DIR_NAME}
 				OUTPUT="${DIR_NAME}/${i}"
-				python test_highscore.py ${PREDICTS} ${TESTDATA} --output ${OUTPUT}
+				python calcIoU.py ${PREDICTS} ${TESTDATA} --output ${OUTPUT}
 		done
-		mv sheet.csv ${DIR_NAME}/sheet${C}.csv
+		mv sheet*.csv ${DIR_NAME}/
 	done
 done
