@@ -51,11 +51,10 @@ do
 		for i in ${LIST} ;do
 				PREDICTS="${p}/${i}"
 				SUB_DIR=`basename ${PREDICTS}`
-				echo " ---  "
 				echo "PREDICT[${PREDICTS}] TESTDATA[${TESTDATA}]"
 				mkdir -p ${DIR_NAME}
 				OUTPUT="${DIR_NAME}/${i}"
-				python calcIoU.py ${PREDICTS} ${TESTDATA} --output ${OUTPUT}
+				python calcIoU2.py ${PREDICTS} ${TESTDATA} --output ${OUTPUT}
 		done
 		mv sheet*.csv ${DIR_NAME}/
 	done
