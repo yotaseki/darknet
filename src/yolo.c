@@ -14,9 +14,9 @@
 #include "opencv2/highgui/highgui_c.h"
 #endif
 
-#define CLASSES 2
+#define CLASSES 1
 
-char *voc_names[] = {"ball","goalpost"};
+char *voc_names[] = {"ball"};
 image voc_labels[CLASSES];
 
 void train_yolo(char *cfgfile, char *weightfile, char *train_images, char *backup_directory)

@@ -1,7 +1,7 @@
 #include "cuda_runtime.h"
 #include "curand.h"
 #include "cublas_v2.h"
-#define CLASSES 2
+#define CLASSES 1
 
 extern "C" {
 #include "network.h"
