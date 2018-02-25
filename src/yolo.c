@@ -319,7 +319,140 @@ void validate_yolo_recall(char *cfgfile, char *weightfile)
     }
 }
 
+void dir_file(const char *path, char *dir, char *file)
+{
+    const char *p = strrchr(path, '/');
+    if (p == NULL) {
+        *dir = '\0';
+        strcpy(file, path);
+    }
+    else if (p == path) {
+        strcpy(dir, "/");
+        strcpy(file, p + 1);
+    }
+    else {
+        memcpy(dir, path, p - path); dir[p - path] = '\0';
+        strcpy(file, p + 1);
+    }
+}
+
 void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, float thresh)
+{
+	puts("bbox\n");
+	int i;
+	mkdir(output,S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IWOTH|S_IXOTH);
+	char dir_part[256];
+    for(i=0;i<=100;i++)
+	{
+		sprintf(dir_part,"%s/thre%03d",output,i);
+		mkdir(dir_part,S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IWOTH|S_IXOTH);
+	}
+    network net = parse_network_cfg(cfgfile);
+    if(weightfile){
+        load_weights(&net, weightfile);
+    }
+    detection_layer l = net.layers[net.n-1];
+    set_batch_network(&net, 1);
+    
+    list *plist = get_paths(filename);
+    char **paths = (char **)list_to_array(plist);
+    int m = plist->size;
+    for(i=0; i<m; i++){
+		srand(2222222);
+		clock_t time;
+		char buff[256];
+        char *input = buff;
+		char bf[256];
+		char *fname = paths[i];
+		int j;
+		float nms=.4;
+		box *boxes = calloc(l.side*l.side*l.n, sizeof(box));
+		float **probs = calloc(l.side*l.side*l.n, sizeof(float *));
+		for(j = 0; j < l.side*l.side*l.n; ++j) probs[j] = calloc(l.classes, sizeof(float *));
+		while(1){
+            if(fname){
+                strncpy(input, fname, 256);
+            } else {
+                printf("Enter Image Path: ");
+                fflush(stdout);
+                input = fgets(input, 256, stdin);
+                if(!input) return;
+                strtok(input, "\n");
+            }
+			image im = load_image_color(input,0,0);
+			image sized = resize_image(im, net.w, net.h);
+			float *X = sized.data;
+			time=clock();
+			float *predictions = network_predict(net, X);
+			printf("%s: Predicted in %f seconds.\n", input, sec(clock()-time));
+                    
+            int i_thre=0;
+            for(i_thre=0;i_thre<=100;i_thre++)
+            {
+                if(i_thre==0)
+                    thresh=0.0;
+                else
+                    thresh = (float)i_thre/100;
+                char dirname[255];
+                char basename[255];
+                dir_file(input,dirname, basename);
+                char *outputname = find_replace(basename, ".jpg", ".txt");
+                char fout[255];
+                sprintf(fout,"%s/thre%03d/%s",output,i_thre,outputname);
+                printf("%s/thre%03d/%s :thresh %f\n",output,i_thre,outputname,thresh);
+                ffopen(fout);
+                convert_detections(predictions, l.classes, l.n, l.sqrt, l.side, 1, 1, thresh, probs, boxes, 0);
+                if (nms) do_nms_sort(boxes, probs, l.side*l.side*l.n, l.classes, nms);
+                /** Chi-chan **/
+                int p,q,s,count;
+                float *pred = l.output;
+                count = -1;
+                for(q = 0; q < l.side*l.side; ++q){
+                    for(s = 0; s < l.n; ++s){
+                        int index = q*l.n + s;
+                        int p_index = l.side*l.side*l.classes + q*l.n + s;
+                        float scale = pred[p_index];
+                        for(p = 0; p < l.classes; ++p){
+                            int class_index = q*l.classes;
+                            float prob = scale*pred[class_index+p];
+                            //printf("probs[%d][%d] = %f\n",index,p,probs[index][p]);
+                            if(probs[index][p]==0){
+                                //count to max
+                                count = count +1;
+                                //printf("count is [%d]\n",count);
+                            }
+                            else ;//printf("----------------------not zero!!!!!!!\n");
+                        }
+                        int prediction_box_num=((l.side*l.side)*(l.n) + (l.n)-3);
+                        //printf("prediction_box_num=%d\n",((l.side*l.side))*(l.n) + (l.n)-3);
+                        if(count==prediction_box_num){
+                            //out put txt
+                            ffprintf("-1 -1 -1 -1 -1 -1 \n");
+                            //printf("output txt\n");
+                        }
+
+                    }
+                }
+
+                /***********************************************************/
+                //draw_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSNUM);
+                print_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSES);
+                ffclose(fout);
+            }
+			//save_image(im, "predictions");
+			//show_image(im, "predictions");
+			free_image(im);
+			free_image(sized);
+	#ifdef OPENCV
+			//cvWaitKey(0);
+			//cvDestroyAllWindows();
+	#endif
+            if (fname) break;
+            }
+	}
+}
+
+void bbox_dir_yolo(char *cfgfile, char *weightfile, char *filename,char *output, float thresh)
 {
 	puts("bbox\n");
 	int i;
