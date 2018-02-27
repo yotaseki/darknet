@@ -657,6 +657,7 @@ void run_yolo(int argc, char **argv)
     char *outdir = (argc > 6) ? argv[6]: 0;
     if(0==strcmp(argv[2], "test")) test_yolo(cfg, weights, filename, thresh);
     else if(0==strcmp(argv[2], "bbox")) bbox_yolo(cfg, weights, filename, outdir, thresh);
+    else if(0==strcmp(argv[2], "bboxdir")) bbox_dir_yolo(cfg, weights, filename, outdir, thresh);
     else if(0==strcmp(argv[2], "train")) train_yolo(cfg, weights, filename, outdir);
     else if(0==strcmp(argv[2], "valid")) validate_yolo(cfg, weights);
     else if(0==strcmp(argv[2], "recall")) validate_yolo_recall(cfg, weights);
