@@ -340,11 +340,12 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, flo
 {
 	puts("bbox\n");
 	int i;
+    int max_threshold = 1000;
 	mkdir(output,S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IWOTH|S_IXOTH);
 	char dir_part[256];
-    for(i=0;i<=100;i++)
+    for(i=0;i<=max_threshold;i++)
 	{
-		sprintf(dir_part,"%s/thre%03d",output,i);
+		sprintf(dir_part,"%s/thre%04d",output,i);
 		mkdir(dir_part,S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IWOTH|S_IXOTH);
 	}
     network net = parse_network_cfg(cfgfile);
@@ -387,12 +388,12 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, flo
 			printf("%s: Predicted in %f seconds.\n", input, sec(clock()-time));
                     
             int i_thre=0;
-            for(i_thre=0;i_thre<=100;i_thre++)
+            for(i_thre=0;i_thre<=0\max_threshold;i_thre++)
             {
                 if(i_thre==0)
                     thresh=0.0;
                 else
-                    thresh = (float)i_thre/100;
+                    thresh = (float)i_thre/max_threshold;
                 char dirname[255];
                 char basename[255];
                 dir_file(input,dirname, basename);
@@ -456,11 +457,12 @@ void bbox_dir_yolo(char *cfgfile, char *weightfile, char *filename,char *output,
 {
 	puts("bbox\n");
 	int i;
+    int max_threshold = 1000;
 	mkdir(output,S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IWOTH|S_IXOTH);
 	char dir_part[256];
-    for(i=0;i<=100;i++)
+    for(i=0;i<=max_threshold;i++)
 	{
-		sprintf(dir_part,"%s/thre%03d",output,i);
+		sprintf(dir_part,"%s/thre%04d",output,i);
 		mkdir(dir_part,S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IWOTH|S_IXOTH);
 	}
     DIR* dp = opendir(filename);
@@ -515,12 +517,12 @@ void bbox_dir_yolo(char *cfgfile, char *weightfile, char *filename,char *output,
 			printf("%s: Predicted in %f seconds.\n", input, sec(clock()-time));
                         
                         int i_thre=0;
-                        for(i_thre=0;i_thre<=100;i_thre++)
+                        for(i_thre=0;i_thre<=max_threshold;i_thre++)
                         {
                             if(i_thre==0)
                                 thresh=0.0;
                             else
-                                thresh = (float)i_thre/100;
+                                thresh = (float)i_thre/max_threshold;
                             char fname[256];
                             char outputtxt[256];
                             strncpy(outputtxt,de->d_name,strlen(de->d_name)-4);
