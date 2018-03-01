@@ -21,7 +21,7 @@ do
 				echo "PREDICT[${PREDICTS}] TESTDATA[${TESTDATA}]"
 				mkdir -p ${DIR_NAME}
 				OUTPUT="${DIR_NAME}/${i}"
-				python calcIoU2.py ${PREDICTS} ${TESTDATA} --output ${OUTPUT}
+				python calcIoU3.py ${PREDICTS} ${TESTDATA} --output ${OUTPUT}
 		done
 		mv sheet*.csv ${DIR_NAME}/
         # sort threshold

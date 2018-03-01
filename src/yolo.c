@@ -402,9 +402,10 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, flo
                 sprintf(fout,"%s/thre%04d/%s",output,i_thre,outputname);
                 printf("%s/thre%04d/%s :thresh %f\n",output,i_thre,outputname,thresh);
                 ffopen(fout);
-                convert_detections(predictions, l.classes, l.n, l.sqrt, l.side, 1, 1, thresh, probs, boxes, 0);
+                print_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSES);
                 if (nms) do_nms_sort(boxes, probs, l.side*l.side*l.n, l.classes, nms);
                 /** Chi-chan **/
+                /*
                 int p,q,s,count;
                 float *pred = l.output;
                 count = -1;
@@ -434,10 +435,9 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, flo
 
                     }
                 }
-
+                */
                 /***********************************************************/
                 //draw_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSNUM);
-                print_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSES);
                 ffclose(fout);
             }
 			//save_image(im, "predictions");
@@ -531,9 +531,10 @@ void bbox_dir_yolo(char *cfgfile, char *weightfile, char *filename,char *output,
                             printf("%s/thre%04d/%s_predict.txt :thresh %f\n",output,i_thre,outputtxt,thresh);
                             ffopen(fname);
 
-                            convert_detections(predictions, l.classes, l.n, l.sqrt, l.side, 1, 1, thresh, probs, boxes, 0);
+                            print_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSES);
                             if (nms) do_nms_sort(boxes, probs, l.side*l.side*l.n, l.classes, nms);
                             /** Chi-chan **/
+                            /*
                             int p,q,s,count;
                             float *pred = l.output;
                             count = -1;
@@ -563,10 +564,9 @@ void bbox_dir_yolo(char *cfgfile, char *weightfile, char *filename,char *output,
 
                                 }
                             }
-
+                            */
                             /***********************************************************/
                             //draw_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSNUM);
-                            print_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSES);
                             ffclose(fname);
                         }
 			//save_image(im, "predictions");
