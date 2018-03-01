@@ -388,7 +388,7 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, flo
 			printf("%s: Predicted in %f seconds.\n", input, sec(clock()-time));
                     
             int i_thre=0;
-            for(i_thre=0;i_thre<=0\max_threshold;i_thre++)
+            for(i_thre=0;i_thre<=max_threshold;i_thre++)
             {
                 if(i_thre==0)
                     thresh=0.0;
