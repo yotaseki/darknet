@@ -200,9 +200,11 @@ def main():
         mAP = .0
         cnt_TPpr = 0
         cnt_FPpr = 0
+        cnt_LEpr = 0
         num_predict_bbox = 0
         cnt_TPgt = 0
         cnt_FNgt = 0
+        cnt_LEgt = 0
         num_gt_bbox = 0
         for i in range(len(predict)):
             # print "loading :" + predict[i]
@@ -227,6 +229,8 @@ def main():
                     cnt_TPpr = cnt_TPpr + 1
                 if r[1] == "FP":
                     cnt_FPpr = cnt_FPpr + 1
+                if r[1] == "LE":
+                    cnt_LEpr = cnt_LEpr + 1
             #### Based on GROUNDTRUTH
             result_gt = y.based_on_gt
             num_gt_bbox = num_gt_bbox + len(y.groundtruth)
@@ -235,11 +239,20 @@ def main():
                     cnt_TPgt = cnt_TPgt + 1
                 if r[1] == "FN":
                     cnt_FNgt = cnt_FNgt + 1
+                if r[1] == "LE":
+                    cnt_LEgt = cnt_LEgt + 1
             AP.append(y.AP)
         mAP = average(AP)
         sheet = open("sheet_"+yolo[cls][0]+".csv","a")
         print "mAP:{}, TPpr:{}, FPpr:{}, NUM_pr:{}, TPgt:{}, FNgt:{}, NUM_gt:{}".format(mAP, cnt_TPpr, cnt_FPpr, num_predict_bbox, cnt_TPgt, cnt_FNgt ,num_gt_bbox)
-        sheet.write("{}:{},{},{},{},{},{},{}\n".format(arg.predict,mAP, cnt_TPpr, cnt_FPpr,num_predict_bbox, cnt_TPgt, cnt_FNgt ,num_gt_bbox))
+        sheet.write("{},{},{},{},{},{},{},{},{},{}\n".format(arg.predict,mAP, cnt_TPpr, cnt_FPpr, cnt_LEpr,num_predict_bbox, cnt_TPgt, cnt_FNgt,cnt_LEgt ,num_gt_bbox))
+        #sheet.write("{}:{},{},{},{},{},{},{}\n".format(arg.predict,mAP, cnt_TPpr, cnt_FPpr,num_predict_bbox, cnt_TPgt, cnt_FNgt ,num_gt_bbox))
+        
+        if ((cnt_TPpr+cnt_LEpr + cnt_FPpr) and (cnt_TPgt+cnt_LEgt+cnt_FNgt)):
+            sheet_pr = open("sheet_"+yolo[cls][0]+"_PRcurve.csv","a")
+            precision = float(cnt_TPpr+cnt_LEpr)/(cnt_TPpr+cnt_LEpr+cnt_FPpr)
+            recall = float(cnt_TPgt+cnt_LEgt) /(cnt_TPgt+cnt_LEgt+cnt_FNgt)
+            sheet_pr.write("{},{},{}\n".format(arg.predict, precision, recall))
         #print "[gt]mAP:{},TP:{},TN:{},LE{},FP{},FN{}".format(mAP[0],cntTP[0],cntTN[0],cntLE[0],cntFP[0],cntFN[0])
         #print "[pr]mAP:{},TP:{},TN:{},LE{},FP{},FN{}".format(mAP[1],cntTP[1],cntTN[1],cntLE[1],cntFP[1],cntFN[1])
         #sheet1.write("{},{},{},{},{},{},{}\n".format(arg.predict,mAP[0],cntTP[0],cntTN[0],cntLE[0],cntFP[0],cntFN[0]))
