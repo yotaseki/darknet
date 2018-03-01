@@ -144,7 +144,8 @@ void draw_detections(image im, int num, float thresh, box *boxes, float **probs,
 
 void print_detections(image im, int num, float thresh, box *boxes, float **probs, char **names, image *labels, int classes) 
 { 
-    int i; 
+    int i;
+    int detection_flag=0;
     for(i = 0; i < num; ++i){ 
         char line[256]; 
         int class = max_index(probs[i], classes); 
@@ -176,8 +177,13 @@ void print_detections(image im, int num, float thresh, box *boxes, float **probs
             if(top < 0) top = 0; 
             if(bot > im.h-1) bot = im.h-1; 
             sprintf(line,"%d %d %d %d %d %.0f \n",class,left,top,right,bot, prob*100); 
-            ffprintf(line); 
-        } 
+            ffprintf(line);
+            detection_flag = 1;
+        }
+        if(detection_flag == 0)
+        {
+            ffprintf("-1 -1 -1 -1 -1 -1 \n");
+        }
     } 
 }
 
