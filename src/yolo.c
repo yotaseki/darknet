@@ -399,8 +399,8 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, flo
                 dir_file(input,dirname, basename);
                 char *outputname = find_replace(basename, ".jpg", ".txt");
                 char fout[255];
-                sprintf(fout,"%s/thre%03d/%s",output,i_thre,outputname);
-                printf("%s/thre%03d/%s :thresh %f\n",output,i_thre,outputname,thresh);
+                sprintf(fout,"%s/thre%04d/%s",output,i_thre,outputname);
+                printf("%s/thre%04d/%s :thresh %f\n",output,i_thre,outputname,thresh);
                 ffopen(fout);
                 convert_detections(predictions, l.classes, l.n, l.sqrt, l.side, 1, 1, thresh, probs, boxes, 0);
                 if (nms) do_nms_sort(boxes, probs, l.side*l.side*l.n, l.classes, nms);
@@ -527,8 +527,8 @@ void bbox_dir_yolo(char *cfgfile, char *weightfile, char *filename,char *output,
                             char outputtxt[256];
                             strncpy(outputtxt,de->d_name,strlen(de->d_name)-4);
                             outputtxt[strlen(de->d_name)-4] = '\0';
-                            sprintf(fname,"%s/thre%03d/%s_predict.txt",output,i_thre,outputtxt);
-                            printf("%s/thre%03d/%s_predict.txt :thresh %f\n",output,i_thre,outputtxt,thresh);
+                            sprintf(fname,"%s/thre%04d/%s_predict.txt",output,i_thre,outputtxt);
+                            printf("%s/thre%04d/%s_predict.txt :thresh %f\n",output,i_thre,outputtxt,thresh);
                             ffopen(fname);
 
                             convert_detections(predictions, l.classes, l.n, l.sqrt, l.side, 1, 1, thresh, probs, boxes, 0);
