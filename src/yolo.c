@@ -402,8 +402,9 @@ void bbox_yolo(char *cfgfile, char *weightfile, char *filename,char *output, flo
                 sprintf(fout,"%s/thre%04d/%s",output,i_thre,outputname);
                 printf("%s/thre%04d/%s :thresh %f\n",output,i_thre,outputname,thresh);
                 ffopen(fout);
-                print_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSES);
+                convert_detections(predictions, l.classes, l.n, l.sqrt, l.side, 1, 1, thresh, probs, boxes, 0);
                 if (nms) do_nms_sort(boxes, probs, l.side*l.side*l.n, l.classes, nms);
+                print_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSES);
                 /** Chi-chan **/
                 /*
                 int p,q,s,count;
@@ -531,8 +532,9 @@ void bbox_dir_yolo(char *cfgfile, char *weightfile, char *filename,char *output,
                             printf("%s/thre%04d/%s_predict.txt :thresh %f\n",output,i_thre,outputtxt,thresh);
                             ffopen(fname);
 
-                            print_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSES);
+                            convert_detections(predictions, l.classes, l.n, l.sqrt, l.side, 1, 1, thresh, probs, boxes, 0);
                             if (nms) do_nms_sort(boxes, probs, l.side*l.side*l.n, l.classes, nms);
+                            print_detections(im, l.side*l.side*l.n, thresh, boxes, probs, voc_names, voc_labels, CLASSES);
                             /** Chi-chan **/
                             /*
                             int p,q,s,count;
