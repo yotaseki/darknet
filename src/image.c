@@ -180,11 +180,11 @@ void print_detections(image im, int num, float thresh, box *boxes, float **probs
             ffprintf(line);
             detection_flag = 1;
         }
-        if(detection_flag == 0)
-        {
-            ffprintf("-1 -1 -1 -1 -1 -1 \n");
-        }
     } 
+    if(detection_flag == 0)
+    {
+        ffprintf("-1 -1 -1 -1 -1 -1 \n");
+    }
 }
 
 void transpose_image(image im)
